@@ -151,20 +151,42 @@ def print_general_solution(A, pivot_cols):
             expr_parts.append(f"{rhs:.3f}")
         expr_parts.extend(valid_terms)
 
-        exprs[pivot_col] = " ".join(expr_parts).strip()
+        expr = " ".join(expr_parts).strip()
+
+        # ✅ 불필요한 "+ -" 정리
+        expr = expr.replace("+ -", "- ")
+        expr = expr.replace("- -", "+ ")
+
+        # ✅ 맨 앞에 "+" 남는 경우 제거
+        if expr.startswith("+"):
+            expr = expr[1:].strip()
+
+        exprs[pivot_col] = expr
 
     # 출력 정리
     print("\n[일반해 형태]")
     for i in range(n_cols):
         expr = exprs.get(i, f"x{i+1}")
-        expr = expr.replace("+ -", "- ")
-        expr = expr.replace("- -", "+ ")
         print(f"x{i+1} = {expr}")
 
 # --------------------------- 실행부 ---------------------------
 A = read_matrix()
 if not A:
     print("입력된 행렬이 없습니다.")
+    sys.exit()
+
+n_rows, n_cols = len(A), len(A[0])
+
+# ✅ 비정방 행렬 (식 < 미지수): LU 분해 생략하고 가우스 소거로 직접 판정
+if n_rows < n_cols - 1:
+    print("\n⚠️ 비정방 행렬 감지 → 가우스 소거법으로 자유변수 및 일반해 계산")
+    A, pivots = gaussian_elimination(A)
+    print("\n[가우스 소거 결과]")
+    for r in A:
+        print(" ".join(f"{x:8.3f}" if abs(x) >= EPS else "      " for x in r))
+
+    if not check_inconsistency(A):
+        print_general_solution(A, pivots)
     sys.exit()
 
 L, U, B, flag = lu_decomposition(A)

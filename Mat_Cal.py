@@ -67,6 +67,16 @@ def find_free_variables(A, pivot_cols):
 
 # --------------------------- LU 분해 ---------------------------
 def lu_decomposition(A):
+
+    #해당 부분 추가 / 정방행렬 체크
+    
+    n_rows = len(A)
+    n_vars = len(A[0]) - 1
+    if n_rows != n_vars:
+        return None, None, None, "singular"
+    
+    #여기까지 추가
+    
     n = len(A)
     coeff = [row[:-1] for row in A]
     B = [row[-1] for row in A]
@@ -142,7 +152,7 @@ def print_general_solution(A, pivot_cols):
                 continue
             var_expr = exprs.get(j, f"x{j+1}")
             sign = "+" if coeff > 0 else "-"
-            coeff_str = "" if abs(coeff - 1) < EPS else f"{abs(coeff):.3f}*"
+            coeff_str = "" if abs(abs(coeff) - 1) < EPS else f"{abs(coeff):.3f}*"
             valid_terms.append(f"{sign} {coeff_str}({var_expr})")
 
         # ✅ 상수항이 0이면 표시 생략
@@ -175,29 +185,15 @@ if not A:
     print("입력된 행렬이 없습니다.")
     sys.exit()
 
-n_rows, n_cols = len(A), len(A[0])
-
-# ✅ 비정방 행렬 (식 < 미지수): LU 분해 생략하고 가우스 소거로 직접 판정
-if n_rows < n_cols - 1:
-    print("\n⚠️ 비정방 행렬 감지 → 가우스 소거법으로 자유변수 및 일반해 계산")
-    A, pivots = gaussian_elimination(A)
-    print("\n[가우스 소거 결과]")
-    for r in A:
-        print(" ".join(f"{x:8.3f}" if abs(x) >= EPS else "      " for x in r))
-
-    if not check_inconsistency(A):
-        print_general_solution(A, pivots)
-    sys.exit()
-
 L, U, B, flag = lu_decomposition(A)
 
 # LU 실패 시 → 가우스 소거로 판별
 if flag == "singular":
-    print("\n⚠️ 0 피벗 발견 → 부정(무한해) 또는 불능(해 없음) 가능성")
+    print("\n⚠️ 0 피벗/비정방 → 가우스 소거로 판별")
     A, pivots = gaussian_elimination(A)
     print("\n[가우스 소거 결과]")
     for r in A:
-        print(" ".join(f"{x:8.3f}" for x in r))
+        print(" ".join(f"{x:8.3f}" if abs(x) >= EPS else "      " for x in r))
     if not check_inconsistency(A):
         print_general_solution(A, pivots)
     sys.exit()

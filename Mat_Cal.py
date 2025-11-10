@@ -242,27 +242,33 @@ class GUI:
         self.root = root
         self.root.title("Matrix Calculator")
 
+        # 행렬 크기 조절
         Label(root, text="미지수 개수").grid(row=1, column=0, columnspan=2, pady = 5)
         self.mat_size = IntVar(value=2)
         Spinbox(root, from_=1, to=5, textvariable=self.mat_size).grid(row=2, column=0, columnspan=2, padx=5, pady=5)
         Button(root, text="크기 적용", command=self.build_matrix_inputs).grid(row=4, column=0, pady=5, columnspan=2)
 
+        # 입력 프레임 생성
         self.frame_coeff = Frame(root, padx=10, pady=10, bd=1, relief="solid")
         self.frame_coeff.grid(row=5, column=0, padx=10, pady=5)
         self.frame_const = Frame(root, padx=10, pady=10, bd=1, relief="solid")
         self.frame_const.grid(row=5, column=1, padx=10, pady=5)
 
+        # 출력 프레임 생성
         self.result_frame = Frame(self.root, padx=10, pady=10, bd=1, relief="solid")
         self.result_frame.grid(row=7, column=0, columnspan=2, pady=5)
 
+        # 입력창 저장 리스트
         self.matrix_coeff_entry = []
         self.matrix_const_entry = []
 
+        # 연립방정식의 해 및 L, U 행렬 출력용 프레임
         self.result_frame = Frame(self.root, padx=10, pady=10, bd=1, relief="solid")
         self.result_frame_L = Frame(self.result_frame, padx=10, pady=10, bd=1, relief="solid")
         self.result_frame_U = Frame(self.result_frame, padx=10, pady=10, bd=1, relief="solid")
 
     def build_matrix_inputs(self):
+        # 입력 프레임 초기화
         for widget in self.frame_coeff.winfo_children():
             widget.destroy()
         for widget in self.frame_const.winfo_children():
@@ -271,6 +277,7 @@ class GUI:
         self.matrix_coeff_entry.clear()
         self.matrix_const_entry.clear()
 
+        # 계수행렬 입력창 (A)
         Label(self.frame_coeff, text="계수행렬").grid(row=0, column=0, columnspan=self.mat_size.get(), pady=5)
         for i in range(self.mat_size.get()):
             row = []
@@ -280,6 +287,7 @@ class GUI:
                 row.append(e)
             self.matrix_coeff_entry.append(row)
 
+        # 상수벡터 입력창 (B)
         Label(self.frame_const, text="상수벡터").grid(row=0, column=0, columnspan=self.mat_size.get(), pady=5)
         for i in range(self.mat_size.get()):
             row = []
@@ -288,6 +296,7 @@ class GUI:
             row.append(e)
             self.matrix_const_entry.append(row)
 
+        # 결과 출력 버튼
         self.result_button = Button(self.root, text="결과 출력", command=self.print_result)
         self.result_button.grid(row=6, column=0, pady=10, columnspan=2)
 
@@ -300,28 +309,33 @@ class GUI:
                     val = float(entry.get())
                     current_row.append(val)
                 except ValueError:
-                    current_row.append(0)
+                    current_row.append(0) # 입력이 비어있거나 숫자가 아닐 때 0 대입
             matrix.append(current_row)
         return matrix
 
     def print_result(self):
+        # 결과 출력 프레임 초기화
         for widget in self.result_frame.winfo_children():
             widget.destroy()
 
         self.result_frame.grid(row=7, column=0, columnspan=2, pady=5)
 
-        matrix_coeff = self.get_matrix_from_entries(self.matrix_coeff_entry)
-        matrix_const = self.get_matrix_from_entries(self.matrix_const_entry)
+        # 입력 행렬 가져오기
+        matrix_coeff = self.get_matrix_from_entries(self.matrix_coeff_entry) # 계수 행렬
+        matrix_const = self.get_matrix_from_entries(self.matrix_const_entry) # 상수 벡터
+
 
         input_matrix = []
         for i in range(self.mat_size.get()):
             input_matrix.append(matrix_coeff[i] + [matrix_const[i][0]])
 
+        # LU 분해 시도
         L, U, B, flag = lu_decomposition(input_matrix)
 
-        if flag == "singular":
+        if flag == "singular": # 분해 실패
             output_matrix, pivot = gaussian_elimination(input_matrix)
 
+            # 가우스 소거 결과 출력
             self.result_label = Label(self.result_frame, text="가우스 소거 결과")
             self.result_gauss_coeff = Frame(self.result_frame, padx=10, pady=10, bd=1, relief="solid")
             self.result_gauss_const = Frame(self.result_frame, padx=10, pady=10, bd=1, relief="solid")
@@ -330,12 +344,13 @@ class GUI:
             self.result_gauss_coeff.grid(row=2, column=0, pady=5)
             self.result_gauss_const.grid(row=2, column=1, pady=5)
 
-            if not check_inconsistency(output_matrix):
+            if not check_inconsistency(output_matrix): # 모순식 없음
                 return_string = return_general_solution(output_matrix, pivot)
                 Label(self.result_frame, text=return_string).grid(row=0, column=0, columnspan=2, pady=5)
             else:
                 Label(self.result_frame, text="[해 없음 (모순식 존재)]").grid(row=0, column=0, columnspan=2, pady=5)
 
+            # 가우스 소거 결과 출력
             for i in range(self.mat_size.get()):
                 for j in range(self.mat_size.get()):
                     e = Entry(self.result_gauss_coeff, width=8, justify="center")
@@ -348,18 +363,21 @@ class GUI:
                 e.insert(0, f"{output_matrix[i][-1]:8.3f}")
             
         else:
+            # 연립방정식의 해 및 L, U 행렬 출력용 프레임
             self.result_label = Label(self.result_frame, text="[연립방정식의 해]")
             self.result_frame_L = Frame(self.result_frame, padx=10, pady=10, bd=1, relief="solid")
             self.result_frame_U = Frame(self.result_frame, padx=10, pady=10, bd=1, relief="solid")
 
+            # LU 분해 후 해 출력
             self.result_label.grid(row=0, column=0, pady=5, columnspan=2)
             solution = '\n'.join(f"x{i+1} = {val if abs(val)>=EPS else 0:8.3f}  " for i, val in enumerate(backward_substitution(U, forward_substitution(L, B))[0]))
             Label(self.result_frame, text=solution).grid(row=1, column=0, pady=5, columnspan=2)
-
+            
             Label(self.result_frame, text = "LU 분해 결과").grid(row=2, column=0, columnspan=2, pady=5)
             self.result_frame_L.grid(row=3, column=0, pady=5)
             self.result_frame_U.grid(row=3, column=1, pady=5)
 
+            # L 행렬 출력
             Label(self.result_frame_L, text="L 행렬").grid(row=0, column=0, pady=5, columnspan = self.mat_size.get())
             for i in range(self.mat_size.get()):
                 for j in range(self.mat_size.get()):
@@ -367,6 +385,7 @@ class GUI:
                     e.grid(row=i+1, column=j, padx=2, pady=2)
                     e.insert(0, f"{L[i][j]:8.3f}" if j <= i else "")
 
+            # U 행렬 출력
             Label(self.result_frame_U, text="U 행렬").grid(row=0, column=0, pady=5, columnspan= self.mat_size.get())
             for i in range(self.mat_size.get()):
                 for j in range(self.mat_size.get()):
@@ -383,3 +402,4 @@ if __name__ == "__main__":
 
     gui = GUI(root)
     root.mainloop()
+

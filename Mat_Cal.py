@@ -70,14 +70,10 @@ def find_free_variables(A, pivot_cols):
 # --------------------------- LU 분해 ---------------------------
 def lu_decomposition(A):
 
-    #해당 부분 추가 / 정방행렬 체크
-    
     n_rows = len(A)
     n_vars = len(A[0]) - 1
     if n_rows != n_vars:
         return None, None, None, "singular"
-    
-    #여기까지 추가
     
     n = len(A)
     coeff = [row[:-1] for row in A]
@@ -380,5 +376,10 @@ class GUI:
                     
 if __name__ == "__main__":
     root = Tk()
+    root.title("Matrix Calculator")
+
+    root.geometry("640x720")
+    root.minsize(640, 720)
+
     gui = GUI(root)
     root.mainloop()

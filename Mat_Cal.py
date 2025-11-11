@@ -236,34 +236,34 @@ def return_general_solution(A, pivot_cols):
 
     return return_string
 
-# --------------------------- GUI ---------------------------
+# ————————————— GUI —————————————
 class GUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Matrix Calculator")
 
+        # 중앙 배치용 Main Frame
+        self.main_frame = Frame(root)
+        self.main_frame.place(relx=0.5, rely=0.5, anchor='center')
+
         # 행렬 크기 조절
-        Label(root, text="미지수 개수").grid(row=1, column=0, columnspan=2, pady = 5)
+        Label(self.main_frame, text="미지수 개수").grid(row=1, column=0, columnspan=2, pady = 5)
         self.mat_size = IntVar(value=2)
-        Spinbox(root, from_=1, to=5, textvariable=self.mat_size).grid(row=2, column=0, columnspan=2, padx=5, pady=5)
-        Button(root, text="크기 적용", command=self.build_matrix_inputs).grid(row=4, column=0, pady=5, columnspan=2)
+        Spinbox(self.main_frame, from_=1, to=5, textvariable=self.mat_size).grid(row=2, column=0, columnspan=2, padx=5, pady=5)
+        Button(self.main_frame, text="크기 적용", command=self.build_matrix_inputs).grid(row=4, column=0, pady=5, columnspan=2)
 
         # 입력 프레임 생성
-        self.frame_coeff = Frame(root, padx=10, pady=10, bd=1, relief="solid")
+        self.frame_coeff = Frame(self.main_frame, padx=10, pady=10, bd=1, relief="solid")
         self.frame_coeff.grid(row=5, column=0, padx=10, pady=5)
-        self.frame_const = Frame(root, padx=10, pady=10, bd=1, relief="solid")
+        self.frame_const = Frame(self.main_frame, padx=10, pady=10, bd=1, relief="solid")
         self.frame_const.grid(row=5, column=1, padx=10, pady=5)
-
-        # 출력 프레임 생성
-        self.result_frame = Frame(self.root, padx=10, pady=10, bd=1, relief="solid")
-        self.result_frame.grid(row=7, column=0, columnspan=2, pady=5)
 
         # 입력창 저장 리스트
         self.matrix_coeff_entry = []
         self.matrix_const_entry = []
 
         # 연립방정식의 해 및 L, U 행렬 출력용 프레임
-        self.result_frame = Frame(self.root, padx=10, pady=10, bd=1, relief="solid")
+        self.result_frame = Frame(self.main_frame, padx=10, pady=10, bd=1, relief="solid")
         self.result_frame_L = Frame(self.result_frame, padx=10, pady=10, bd=1, relief="solid")
         self.result_frame_U = Frame(self.result_frame, padx=10, pady=10, bd=1, relief="solid")
 
@@ -292,12 +292,12 @@ class GUI:
         for i in range(self.mat_size.get()):
             row = []
             e = Entry(self.frame_const, width=5)
-            e.grid(row=i+1, column=j, padx=2, pady=2)
+            e.grid(row=i+1, column=0, padx=2, pady=2)
             row.append(e)
             self.matrix_const_entry.append(row)
 
         # 결과 출력 버튼
-        self.result_button = Button(self.root, text="결과 출력", command=self.print_result)
+        self.result_button = Button(self.main_frame, text="결과 출력", command=self.print_result)
         self.result_button.grid(row=6, column=0, pady=10, columnspan=2)
 
     def get_matrix_from_entries(self, entries):
@@ -324,7 +324,6 @@ class GUI:
         matrix_coeff = self.get_matrix_from_entries(self.matrix_coeff_entry) # 계수 행렬
         matrix_const = self.get_matrix_from_entries(self.matrix_const_entry) # 상수 벡터
 
-
         input_matrix = []
         for i in range(self.mat_size.get()):
             input_matrix.append(matrix_coeff[i] + [matrix_const[i][0]])
@@ -335,7 +334,7 @@ class GUI:
         if flag == "singular": # 분해 실패
             output_matrix, pivot = gaussian_elimination(input_matrix)
 
-            # 가우스 소거 결과 출력
+            # 가우스 소거 결과 출력용 프레임
             self.result_label = Label(self.result_frame, text="가우스 소거 결과")
             self.result_gauss_coeff = Frame(self.result_frame, padx=10, pady=10, bd=1, relief="solid")
             self.result_gauss_const = Frame(self.result_frame, padx=10, pady=10, bd=1, relief="solid")
@@ -359,7 +358,7 @@ class GUI:
 
             for i in range(self.mat_size.get()):
                 e = Entry(self.result_gauss_const, width=8, justify="center")
-                e.grid(row=i+1, column=self.mat_size.get(), padx=2, pady=2)
+                e.grid(row=i+1, column=0, padx=2, pady=2)
                 e.insert(0, f"{output_matrix[i][-1]:8.3f}")
             
         else:
@@ -372,7 +371,7 @@ class GUI:
             self.result_label.grid(row=0, column=0, pady=5, columnspan=2)
             solution = '\n'.join(f"x{i+1} = {val if abs(val)>=EPS else 0:8.3f}  " for i, val in enumerate(backward_substitution(U, forward_substitution(L, B))[0]))
             Label(self.result_frame, text=solution).grid(row=1, column=0, pady=5, columnspan=2)
-            
+
             Label(self.result_frame, text = "LU 분해 결과").grid(row=2, column=0, columnspan=2, pady=5)
             self.result_frame_L.grid(row=3, column=0, pady=5)
             self.result_frame_U.grid(row=3, column=1, pady=5)
@@ -397,9 +396,8 @@ if __name__ == "__main__":
     root = Tk()
     root.title("Matrix Calculator")
 
-    root.geometry("640x720")
+    root.geometry("960x1080")
     root.minsize(640, 720)
 
     gui = GUI(root)
     root.mainloop()
-

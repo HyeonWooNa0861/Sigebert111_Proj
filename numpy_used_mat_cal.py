@@ -4,7 +4,15 @@ import numpy as np
 n = int(input().strip())
 A = np.array([list(map(float, input().split())) for _ in range(n)], dtype=float)
 k = int(input().strip())
+# 음수 거듭제곱일 경우 대비
+k0 = k
 
+# k<0인 경우: A^k = (A^{-1})^{-k} +
+if k < 0:
+    if np.linalg.det(A) == 0:
+        raise ValueError("k<0인데 행렬이 가역이 아니라 A^k를 정의할 수 없습니다.")
+    A = np.linalg.inv(A)
+    k = -k
 # k=0인 경우: 항등행렬
 if k == 0:
     # 항등행렬 생성
@@ -75,6 +83,5 @@ else:
 result_str = np.array2string(result, precision=4, floatmode='fixed',
                              separator=', ', max_line_width=1000)
 # 줄바꿈 제거 (1행으로 출력) 및 '-0.0000'을 '0.0000'으로 치환
-result_str = result_str.replace('\n', '')
 result_str = result_str.replace('-0.0000', '0.0000')
-print(f"A^{k} = {result_str}")
+print(f"A^{k0} = {result_str}")
